@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>主页</title>
+</head>
+<body>
+<form>
+    <h3>添加用户</h3>
+    <input name="name" placeholder="用户名"><br/>
+    <input name="phone" placeholder="手机号"><br/>
+    <button type="button" onclick="addUser()">提交</button>
+</form>
+<hr>
+<h3>查询用户</h3>
+<input name="key" id="searchKey" placeholder="查询用户的id或name或phone"><br>
+
+
+<button type="button" onclick="searchUser(searchKey.value)">查询</button>
+
+<hr>
+<div id="updateDiv">
+    <h3>变更用户</h3>
+    <form id="updateForm">
+        <input name="id" type="hidden">
+        <input name="name" placeholder="用户名"><br>
+        <input name="phone" placeholder="手机号"><br>
+        <button type="button" onclick="updateUser()">变更</button>
+    </form>
+</div>
+<div>
+    <ul id="userData"></ul>
+</div>
+<script src="/static/js/jquery.min.js"></script>
+<script>
+    $(function () {
+
+        queryAll();
+        $('#updateDiv').hide()
+
+
+    });
+
+    function queryAll() {
+        $.get('/user', function (data) {
+            if (data.state == 'ok') {
+                $('#userData').html('');
+                for (var i = 0; i < data.data.length; i++) {
+                    user = data.data[i];
+                    $('#userData').append('<li>' + user.name + ':' + user.phone + '<button onclick=delUser(' + user.id + ')>删除</button></li>')
+                }
+            }
+        });
+
+    }
+
+    function addUser() {
+        //通过ajax方式上传数据表单
+        $.ajax('/user', {
+            type: 'POST',
+            data: $('form').serialize(),
+            dataType: 'json', //响应的数据类型
+            success: function (data) {
+                alert(data.msg);
+                queryAll();
+
+
+            }
+        })
+
+    }
+
+    function delUser(id) {
+        $.ajax('/user?id=' + id, {
+            type: 'DELETE',
+            dataType: 'json',
+            success: function (data) {
+                alert(data.msg);
+                queryAll();
+            }
+        });
+    }
+
+    function updateUser() {
+         $.ajax('/user', {
+            type: 'PATCH',
+            data: $('#updateForm').serialize(),
+            dataType: 'json', //响应的数据类型
+            success: function (data) {
+                console.log(data);
+                alert(data.msg);
+                queryAll();
+                $('#updateDiv').hide()
+
+
+
+            }
+        })
+
+    }
+
+    function searchUser(key) {
+        $.get('/user?key=' + key, function (data) {
+            if(data.state=='ok')
+                user = data.data;
+                $("#updateForm > input[name='id']").val(user.id);
+                $("#updateForm > input[name='name']").val(user.name);
+                $("#updateForm > input[name='phone']").val(user.phone);
+                $('#updateDiv').show()
+
+        })
+
+    }
+
+</script>
+</body>
+</html>

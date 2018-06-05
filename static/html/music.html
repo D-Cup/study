@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>音乐</title>
+</head>
+<body>
+<input id="searchKey" placeholder="请输入要查询的内容">
+<button type="button" onclick="query(searchKey.value)">提交</button>
+
+<ul id="searchResult">
+</ul>
+<hr>
+<audio id="mp3" controls="controls">
+    </audio>
+<hr>
+<h4>查询结果</h4>
+<ul id="musicData"></ul>
+<hr>
+<form>
+    <input name="name" placeholder="歌名"><br/>
+    <input name="singer" placeholder="歌手"><br/>
+    <input name="brand" placeholder="所属专辑"><br/>
+    <input name="mp3_url" placeholder="歌曲地址"><br/>
+    <button type="button" onclick="addMusic()">提交</button>
+</form>
+
+
+<script src="/static/js/jquery.min.js"></script>
+<script>
+    $(function () {
+        queryAll()
+    });
+
+    function queryAll() {
+        $('#musicData').html("");
+        $.get('/musics', function (data) {
+            for (let i = 0; i < data.data.length; i++) {
+                $('#musicData').append('<li>' + data.data[i].id + '-歌曲名称-' + data.data[i].name + '-歌手-'
+                    + data.data[i].singer + '-所属专辑-' + data.data[i].brand + '-试听地址-'
+                    + data.data[i].url + '<button onclick=delMusic(' + data.data[i].id + ')>删除</button></li>');
+            }
+
+        });
+    }
+
+    function query(key) {
+        $.get('/musics?key=' + key, function (data) {
+            $('#searchResult').html('');
+            $('#mp3').html('');
+            $('#searchResult').append('<li>' + data.data.id + '-歌曲名称-' + data.data.name + '-歌手-'
+                + data.data.singer + '-所属专辑-' + data.data.brand + '</li>');
+
+            $('#mp3').append('<source src="' + data.data.url + '" type="audio/mp3"/>');
+        })
+
+    }
+
+    function addMusic() {
+        $.post('/musics', $('form').serialize());
+        queryAll()
+    }
+
+    function delMusic(id) {
+        $.ajax('/musics?id=' + id, {
+            type: 'DELETE',
+            dataType:'json',
+            success:function (data) {
+                console.log(data);
+                alert(data.msg);
+                queryAll()
+
+            }
+        })
+
+    }
+
+
+</script>
+</body>
+</html>
